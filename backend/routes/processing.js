@@ -8,7 +8,7 @@ const path = require('path');
 const { Op } = require('sequelize');
 
 const { Subject, File, Configuration, ProcessingLog, FacultyCourseAssignment, Report } = require('../models');
-const { runStage3, runStage4 } = require('../utils/pythonExecutor');
+const { runStage3, runStage4, runPythonStage } = require('../utils/pythonExecutor');
 const { fileExists } = require('../utils/fileManager');
 const { logActivity } = require('../utils/activityLogger');
 const { updateSubjectPhase } = require('../utils/phaseTracker');
@@ -188,10 +188,36 @@ router.post('/mid-sem', async (req, res, next) => {
   }
 });
 
+router.post('/terminal-preview', async (req, res, next) => {
+  try {
+    const { subject_id } = req.body;
+    const userId = req.user.id;
+    let subject = await checkCourseAssignment(userId, req.user.role, subject_id);
+
+    const terminal = await getFile(subject_id, 'TERMINAL');
+    if (!terminal || !fileExists(terminal.file_path)) {
+      return res.status(400).json({ error: 'Terminal marks file required' });
+    }
+
+    const previewResult = await runPythonStage('terminal_preview.py', {
+      file_path: terminal.file_path,
+      subject_code: subject.subject_code
+    });
+
+    if (previewResult.status !== 'ok') {
+      throw new Error(previewResult.message || 'Failed to generate preview');
+    }
+
+    res.json({ status: 'success', data: previewResult });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/terminal', async (req, res, next) => {
   const startTime = Date.now();
   try {
-    const { subject_id } = req.body;
+    const { subject_id, selected_percentage } = req.body;
     const userId = req.user.id;
     let subject = await checkCourseAssignment(userId, req.user.role, subject_id);
 
@@ -239,7 +265,8 @@ router.post('/terminal', async (req, res, next) => {
       outputPath: reportPath,
       ep: config?.ep !== undefined && config?.ep !== null ? parseFloat(config.ep) : 80,
       constraint: config?.constraint_value !== undefined && config?.constraint_value !== null ? parseFloat(config.constraint_value) : 79.99,
-      ela
+      ela,
+      terminalPercentage: selected_percentage ? parseFloat(selected_percentage) : null
     });
 
     if (stage4Result.status !== 'ok') throw new Error(stage4Result.message);

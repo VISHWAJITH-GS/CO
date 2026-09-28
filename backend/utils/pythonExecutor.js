@@ -193,7 +193,8 @@ async function runStage4(coAttainmentPath, terminalPath, outputPath, ep, constra
       output_path: options.outputPath ?? options.output_path,
       ep: parseFloat(options.ep),
       constraint: parseFloat(options.constraint),
-      ela: options.ela
+      ela: options.ela,
+      terminal_percentage: options.terminalPercentage
     });
   }
 
@@ -204,7 +205,8 @@ async function runStage4(coAttainmentPath, terminalPath, outputPath, ep, constra
     output_path: outputPath,
     ep: parseFloat(ep),
     constraint: parseFloat(constraint),
-    ela
+    ela,
+    terminal_percentage: phase === 'end' && arguments[7] ? parseFloat(arguments[7]) : null
   });
 }
 

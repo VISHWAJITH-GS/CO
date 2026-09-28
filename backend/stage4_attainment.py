@@ -22,14 +22,7 @@ from openpyxl.utils import get_column_letter
 from utils import validate_file_exists
 
 
-# ---------------------------------------------------------------------------
-# Terminal CAMU file layout (1-indexed, openpyxl)
-# ---------------------------------------------------------------------------
-TERM_ROW_Q_LABELS   = 1   # Row 1 : question number codes
-TERM_ROW_CO_HEADERS = 2   # Row 2 : "Ques No X - COY"  headers
-TERM_ROW_MAX_MARKS  = 3   # Row 3 : max marks per question column
-TERM_STUDENT_START  = 5   # Row 5 : first student row
-TERM_MARKS_START_COL = 7  # Col G (1-indexed): first question marks column
+# Terminal section uses a flat percentage instead of question-wise parsing.
 
 CO_HEADER_PATTERN = re.compile(r"CO\d+", re.IGNORECASE)
 
@@ -329,6 +322,7 @@ def main():
         ep                 = parse_float(args.get("ep"), 80)
         constraint         = parse_float(args.get("constraint"), 79.99)
         ela                = args.get("ela", {})
+        terminal_percentage = args.get("terminal_percentage")
 
         if phase not in {"early", "mid", "end"}:
             raise ValueError("Invalid phase. Expected one of: early, mid, end")
@@ -348,14 +342,10 @@ def main():
         sheet1 = wb["Sheet1"]
         sheet2 = create_or_reset_sheet2(wb)
 
-        # Parse terminal file once if end phase
-        term_ws          = None
-        student_co_pct   = {}
-        ordered_cos_term = []
-        if phase == "end":
-            term_wb = load_workbook(terminal_path, data_only=True)
-            term_ws = term_wb.active
-            _, _, student_co_pct, ordered_cos_term, _ = parse_terminal_camu(term_ws)
+        # In the new flow, terminal_percentage is provided directly.
+        # No need to parse the terminal file again.
+        if phase == "end" and terminal_percentage is None:
+            raise ValueError("terminal_percentage is missing. Faculty must select B/A/S percentage.")
 
         start_row    = 8
         src_start    = 80   # Column CB — internal CO % columns in Sheet1
@@ -414,25 +404,15 @@ def main():
         sheet2["L2"].alignment = Alignment(horizontal="center", vertical="center")
 
         for i in range(co_count):
-            co_name = f"CO{i + 1}"
-            if phase == "end" and ordered_cos_term:
-                # Use actual CO name from terminal file if available
-                header = co_name if co_name in ordered_cos_term else co_name
-            else:
-                header = co_name
-            sheet2.cell(row=3, column=12 + i).value = header
+            sheet2.cell(row=3, column=12 + i).value = f"CO{i + 1}"
 
         if phase == "end":
-            # Write per-student CO percentages from the new CAMU terminal format
+            # Write the single selected B/A/S percentage for all students and all COs
             for row in student_rows:
                 dest_row = row - 2
-                # Get the student's RegNo from Sheet1 (col B = column 2)
-                regno = str(sheet1.cell(row=row, column=2).value or "").strip()
                 for i in range(co_count):
-                    co_name = f"CO{i + 1}"
-                    pct_val = get_terminal_co_value(student_co_pct, regno, co_name)
                     cell = sheet2.cell(row=dest_row, column=12 + i)
-                    cell.value = round(pct_val, 4)
+                    cell.value = round(terminal_percentage, 4)
                     cell.number_format = "0.00"
                     cell.alignment = Alignment(horizontal="center")
         else:

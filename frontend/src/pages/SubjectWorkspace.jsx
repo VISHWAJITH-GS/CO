@@ -16,6 +16,7 @@ import {
   processPhase1,
   processPhase2,
   processPhase3,
+  previewTerminal,
   saveConfiguration,
 } from "../lib/api";
 
@@ -50,6 +51,10 @@ export default function SubjectWorkspace({ user }) {
   
   const [generatingStage, setGeneratingStage] = useState("");
   const [clearingProcess, setClearingProcess] = useState(false);
+
+  const [terminalPreviewData, setTerminalPreviewData] = useState(null);
+  const [selectedPercentage, setSelectedPercentage] = useState(null);
+  const [previewingTerminal, setPreviewingTerminal] = useState(false);
 
   const messageRef = useCallback((node) => {
     if (node !== null) {
@@ -116,7 +121,8 @@ export default function SubjectWorkspace({ user }) {
         setSaveMessage("Mid-sem report generated and downloaded.");
         setStep(Math.max(step, 3));
       } else if (stageName === "Final") {
-        await processPhase3(subjectId);
+        if (!selectedPercentage) throw new Error("Please select an End Sem percentage (B/A/S) before generating.");
+        await processPhase3(subjectId, selectedPercentage);
         await downloadLatestReportByType("CO_ATTAINMENT_COMPLETE", "END_SEM_REPORT");
         setSaveMessage("End-sem final report generated and downloaded.");
         setStep(4);
@@ -125,6 +131,20 @@ export default function SubjectWorkspace({ user }) {
       setSaveMessage(error.message || `Failed to generate ${stageName} report.`);
     } finally {
       setGeneratingStage("");
+    }
+  }
+
+  async function handlePreviewTerminal() {
+    if (!subjectId) return;
+    setPreviewingTerminal(true);
+    setSaveMessage("");
+    try {
+      const result = await previewTerminal(subjectId);
+      setTerminalPreviewData(result.data);
+    } catch (error) {
+      setSaveMessage(error.message || "Failed to preview terminal file.");
+    } finally {
+      setPreviewingTerminal(false);
     }
   }
 
@@ -332,17 +352,17 @@ export default function SubjectWorkspace({ user }) {
         <StageUploadCard
           title="End-sem & Parameters"
           fields={[
-            { key: "TERMINAL", label: "Terminal Marksheet (.xlsx)" }
+            { key: "TERMINAL", label: "Terminal Marksheet (.xls)" }
           ]}
           uploadedFiles={uploadedFiles}
           onUploadChange={handleUploadChange}
           subjectId={subjectId}
           subjectCode={resolvedSubjectCode}
           user={user}
-          isCompleted={endReady && step >= 3}
+          isCompleted={endReady && step >= 3 && !!selectedPercentage}
           onGenerate={() => handleGenerateStage("Final")}
           generateLabel="Generate Final Report"
-          canGenerate={earlyReady && midReady && endReady && step >= 3 && !!subjectId}
+          canGenerate={earlyReady && midReady && endReady && step >= 3 && !!subjectId && !!selectedPercentage}
           isGenerating={generatingStage === "Final"}
         >
           {/* Parameter Section directly embedded in End-Sem group */}
@@ -370,6 +390,70 @@ export default function SubjectWorkspace({ user }) {
               }}
             />
           </div>
+
+          {endReady && step >= 3 && (
+            <div className="mt-6 pt-6 border-t border-slate-100">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">End Sem Performance</h3>
+              {!terminalPreviewData ? (
+                <button
+                  type="button"
+                  onClick={handlePreviewTerminal}
+                  disabled={previewingTerminal}
+                  className="btn-press rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {previewingTerminal ? "Processing..." : "Process Terminal File"}
+                </button>
+              ) : (
+                <div className="space-y-6">
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-medium text-slate-600 mb-2">Grade Distribution</h4>
+                    <div className="grid grid-cols-4 gap-4 sm:grid-cols-8">
+                      {["O", "A+", "A", "B+", "B", "C", "U"].map((g) => (
+                        <div key={g} className="text-center">
+                          <div className="text-xs text-slate-500 font-semibold">{g}</div>
+                          <div className="text-lg font-bold text-slate-800">{terminalPreviewData.grades[g] || 0}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 text-sm text-slate-600 font-medium">
+                      Total Registered: <span className="font-bold text-slate-800">{terminalPreviewData.total_registered}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-medium text-slate-600 mb-3">Select Attainment Percentage</h4>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                      {["B", "A", "S"].map((type) => {
+                        const val = terminalPreviewData.percentages[type];
+                        const isSelected = selectedPercentage === val;
+                        return (
+                          <div
+                            key={type}
+                            onClick={() => setSelectedPercentage(val)}
+                            className={`cursor-pointer rounded-lg border p-4 transition-all ${
+                              isSelected
+                                ? "border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600 shadow-sm"
+                                : "border-slate-200 bg-white hover:border-indigo-300 hover:shadow-sm"
+                            }`}
+                          >
+                            <div className="flex justify-between items-center mb-1">
+                              <span className={`font-semibold ${isSelected ? "text-indigo-700" : "text-slate-700"}`}>
+                                Percentage {type}
+                              </span>
+                              {isSelected && <Check className="w-5 h-5 text-indigo-600" />}
+                            </div>
+                            <div className={`text-2xl font-bold ${isSelected ? "text-indigo-700" : "text-slate-900"}`}>
+                              {val.toFixed(2)}%
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </StageUploadCard>
 
         <div>

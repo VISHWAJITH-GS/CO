@@ -223,8 +223,15 @@ export function processPhase2(subjectId, templatePath) {
   });
 }
 
-export function processPhase3(subjectId) {
+export function processPhase3(subjectId, selectedPercentage) {
   return request("/api/processing/terminal", {
+    method: "POST",
+    body: JSON.stringify({ subject_id: subjectId, selected_percentage: selectedPercentage }),
+  });
+}
+
+export function previewTerminal(subjectId) {
+  return request("/api/processing/terminal-preview", {
     method: "POST",
     body: JSON.stringify({ subject_id: subjectId }),
   });
