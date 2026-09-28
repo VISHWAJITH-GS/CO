@@ -308,7 +308,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Staff Dashboard</h1>
-          <p className="text-sm text-slate-500">Manage institutional courses, faculty assignments, and review outcome attainment reports.</p>
+          <p className="text-sm text-slate-500">Manage courses, faculty assignments, and reports.</p>
         </div>
       </div>
 

@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, AlertCircle, X } from "lucide-react";
 import StageUploadCard from "../components/layout/StageUploadCard";
 import ParameterSection from "../components/layout/ParameterSection";
 import { pageVariants, containerVariants, sectionVariants } from "../lib/animations";
@@ -56,11 +56,6 @@ export default function SubjectWorkspace({ user }) {
   const [selectedPercentage, setSelectedPercentage] = useState(null);
   const [previewingTerminal, setPreviewingTerminal] = useState(false);
 
-  const messageRef = useCallback((node) => {
-    if (node !== null) {
-      node.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, []);
 
   const { subjectCode } = useParams();
   const resolvedSubjectCode = subjectCode || "SUBJECT";
@@ -252,9 +247,6 @@ export default function SubjectWorkspace({ user }) {
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Subject Workspace</p>
           <h1 className="mt-1 text-2xl font-semibold text-red-950">{resolvedSubjectCode} - {details.name}</h1>
           <p className="mt-1 text-sm font-medium text-slate-600">{details.semester}</p>
-          <p className="mt-2 text-sm text-slate-600">
-            Manage Early-sem, Mid-sem, and End-sem files, configure CO parameters, and download stage reports.
-          </p>
         </div>
       </motion.div>
 
@@ -293,22 +285,63 @@ export default function SubjectWorkspace({ user }) {
 
       <motion.div className="space-y-6" variants={containerVariants} initial="hidden" animate="visible">
         
-        <AnimatePresence>
-          {saveMessage && (
-            <motion.div
-              ref={messageRef}
-              initial={{ opacity: 0, y: -10, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: "auto" }}
-              exit={{ opacity: 0, y: -10, height: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="p-3 mb-2 rounded-lg bg-red-50 border border-red-200 text-red-800 text-sm font-medium shadow-[0_2px_10px_-4px_rgba(127,29,29,0.2)] flex items-center gap-2">
-                <Check size={16} className="text-red-700" />
-                {saveMessage}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div className="fixed top-5 right-5 z-50 pointer-events-none flex flex-col gap-2 max-w-md w-full px-4 sm:px-0">
+          <AnimatePresence>
+            {saveMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -16, scale: 0.94 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12, scale: 0.95 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="pointer-events-auto w-full"
+              >
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className={`flex items-start gap-3 rounded-xl border p-4 shadow-xl backdrop-blur-md transition-all ${
+                    saveMessage.toLowerCase().includes("fail") ||
+                    saveMessage.toLowerCase().includes("unable") ||
+                    saveMessage.toLowerCase().includes("please") ||
+                    saveMessage.toLowerCase().includes("error")
+                      ? "bg-red-50/95 border-red-200 text-red-900 shadow-red-900/10"
+                      : "bg-white/95 border-emerald-200 text-slate-800 shadow-slate-900/10"
+                  }`}
+                >
+                  <div
+                    className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full ${
+                      saveMessage.toLowerCase().includes("fail") ||
+                      saveMessage.toLowerCase().includes("unable") ||
+                      saveMessage.toLowerCase().includes("please") ||
+                      saveMessage.toLowerCase().includes("error")
+                        ? "bg-red-100 text-red-700"
+                        : "bg-emerald-100 text-emerald-700"
+                    }`}
+                  >
+                    {saveMessage.toLowerCase().includes("fail") ||
+                    saveMessage.toLowerCase().includes("unable") ||
+                    saveMessage.toLowerCase().includes("please") ||
+                    saveMessage.toLowerCase().includes("error") ? (
+                      <AlertCircle size={15} strokeWidth={2.5} />
+                    ) : (
+                      <Check size={15} strokeWidth={2.5} />
+                    )}
+                  </div>
+                  <div className="flex-1 text-sm font-medium leading-relaxed">
+                    {saveMessage}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSaveMessage("")}
+                    aria-label="Dismiss message"
+                    className="shrink-0 -mr-1 -mt-1 p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100/70 transition-colors"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Early Sem Group */}
         <StageUploadCard
@@ -399,7 +432,7 @@ export default function SubjectWorkspace({ user }) {
                   type="button"
                   onClick={handlePreviewTerminal}
                   disabled={previewingTerminal}
-                  className="btn-press rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                  className="btn-press inline-flex items-center gap-2 rounded-md bg-red-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/40 disabled:opacity-50"
                 >
                   {previewingTerminal ? "Processing..." : "Process Terminal File"}
                 </button>
@@ -421,7 +454,7 @@ export default function SubjectWorkspace({ user }) {
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-medium text-slate-600 mb-3">Select Attainment Percentage</h4>
+                    <h4 className="text-sm font-medium text-slate-600 mb-3">Attainment Level</h4>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                       {["B", "A", "S"].map((type) => {
                         const val = terminalPreviewData.percentages[type];

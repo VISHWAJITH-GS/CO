@@ -97,7 +97,7 @@ export default function Settings({ user }) {
         {/* Header */}
         <motion.div variants={itemVariants} className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Settings</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage your account security and active sessions.</p>
+          <p className="text-sm text-slate-500 mt-1">Manage password and security.</p>
         </motion.div>
 
         {/* Change Password Card */}
@@ -201,10 +201,10 @@ export default function Settings({ user }) {
 
         {/* Account Actions Card */}
         <motion.div variants={itemVariants}>
-          <Card className="border-slate-100 shadow-sm bg-white/70 backdrop-blur-md overflow-hidden">
-            <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+          <Card className="overflow-hidden border-slate-200/70 bg-white shadow-[0_2px_6px_rgba(15,23,42,0.08)]">
+            <CardContent className="grid items-center gap-4 p-6 pt-6 md:p-6 md:pt-6 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <div className="min-w-0 space-y-1">
+                <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
                   <LogOut size={16} className="text-red-950" />
                   Sign Out
                 </h3>
@@ -212,10 +212,10 @@ export default function Settings({ user }) {
                   End your current session securely.
                 </p>
               </div>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full self-center sm:w-auto sm:justify-self-end">
                 <Button
                   variant="outline"
-                  className="btn-press w-full sm:w-auto border-red-950/20 text-red-950 hover:bg-red-950/10 hover:text-red-950 hover:border-red-950/30 bg-white shadow-sm h-10"
+                  className="btn-press h-10 w-full border-red-950/20 bg-white text-red-950 shadow-sm hover:border-red-950/30 hover:bg-red-950/10 hover:text-red-950 sm:w-auto"
                   onClick={() => navigate("/login")}
                 >
                   Log out

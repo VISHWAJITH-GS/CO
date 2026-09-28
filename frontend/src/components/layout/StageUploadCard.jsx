@@ -242,7 +242,7 @@ export default function StageUploadCard({
           {generateLabel && onGenerate && (
             <div className="flex items-center gap-3 pt-4 mt-1 border-t border-slate-100">
               <Button
-                className="btn-press inline-flex items-center gap-2 min-w-[220px]"
+                className="btn-press inline-flex items-center gap-2 rounded-md bg-red-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/40 disabled:opacity-50"
                 onClick={onGenerate}
                 disabled={!canGenerate || isGenerating}
                 isLoading={isGenerating}

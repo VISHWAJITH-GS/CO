@@ -53,14 +53,6 @@ function SidebarContent({ user, collapsed = false, onClose, onToggleCollapse, de
             : "text-slate-700 hover:bg-red-50 hover:text-red-900"
         )}
       >
-        {/* Active left bar */}
-        {active && (
-          <motion.span
-            layoutId="sidebar-active-bar"
-            className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-red-700"
-            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-          />
-        )}
 
         <motion.span
           animate={{ scale: active ? 1.08 : 1 }}

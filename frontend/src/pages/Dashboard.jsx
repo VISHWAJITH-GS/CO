@@ -47,7 +47,7 @@ export default function Dashboard() {
       <motion.div variants={sectionVariants} className="flex flex-col gap-1.5">
         <h1 className="text-3xl font-semibold tracking-tight text-red-950">Staff Dashboard</h1>
         <p className="text-sm text-slate-500 max-w-2xl">
-          Manage your assigned subjects, open workspaces, upload assessment files, configure parameters, and generate attainment reports.
+          Manage assigned subjects, assessment files, and attainment reports.
         </p>
       </motion.div>
 

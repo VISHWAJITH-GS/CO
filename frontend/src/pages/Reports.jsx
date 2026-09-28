@@ -110,7 +110,7 @@ export default function Reports({ user }) {
       <motion.div variants={sectionVariants} className="flex flex-col gap-1.5">
         <h1 className="text-3xl font-semibold tracking-tight text-red-950">Reports</h1>
         <p className="text-sm text-slate-500 max-w-2xl">
-          View generated outcome attainment reports and submit them to the admin for review.
+          View outcome attainment reports and submit for review.
         </p>
       </motion.div>
 
