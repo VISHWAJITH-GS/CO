@@ -12,6 +12,7 @@ const { runStage3, runStage4, runPythonStage } = require('../utils/pythonExecuto
 const { fileExists } = require('../utils/fileManager');
 const { logActivity } = require('../utils/activityLogger');
 const { updateSubjectPhase } = require('../utils/phaseTracker');
+const { recalculateExcelFormulas } = require('../utils/excelRecalculator');
 
 function resolveOutputsDir() {
   const configured = process.env.OUTPUTS_DIR || 'outputs';
@@ -98,6 +99,14 @@ router.post('/early-sem', async (req, res, next) => {
 
     if (stage4Result.status !== 'ok') throw new Error(stage4Result.message);
 
+    try {
+      await recalculateExcelFormulas(reportPath);
+    } catch (recalcError) {
+      console.warn('Excel recalculation failed:', recalcError.message);
+      // Depending on requirements, we can throw or just log. We'll throw to ensure error is caught.
+      throw new Error('Failed to recalculate Excel formulas: ' + recalcError.message);
+    }
+
     await Report.create({
       faculty_id: userId, course_id: subject_id,
       report_file_path: reportPath, report_name: `${subject.subject_code}_EARLY_SEM_REPORT`,
@@ -172,6 +181,13 @@ router.post('/mid-sem', async (req, res, next) => {
     });
 
     if (stage4Result.status !== 'ok') throw new Error(stage4Result.message);
+
+    try {
+      await recalculateExcelFormulas(reportPath);
+    } catch (recalcError) {
+      console.warn('Excel recalculation failed:', recalcError.message);
+      throw new Error('Failed to recalculate Excel formulas: ' + recalcError.message);
+    }
 
     await Report.create({
       faculty_id: userId, course_id: subject_id,
@@ -270,6 +286,13 @@ router.post('/terminal', async (req, res, next) => {
     });
 
     if (stage4Result.status !== 'ok') throw new Error(stage4Result.message);
+
+    try {
+      await recalculateExcelFormulas(reportPath);
+    } catch (recalcError) {
+      console.warn('Excel recalculation failed:', recalcError.message);
+      throw new Error('Failed to recalculate Excel formulas: ' + recalcError.message);
+    }
 
     await Report.create({
       faculty_id: userId, course_id: subject_id,

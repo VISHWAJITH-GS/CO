@@ -1,11 +1,9 @@
 services:
   - type: web
     name: co-attainment-backend
-    env: node
+    env: docker
     plan: free
     rootDir: backend
-    buildCommand: npm install && python3 -m venv venv && ./venv/bin/pip install -r requirements.txt
-    startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
