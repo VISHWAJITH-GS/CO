@@ -1,7 +1,7 @@
 services:
   - type: web
     name: co-attainment-backend
-    env: docker
+    runtime: docker
     plan: free
     rootDir: backend
     healthCheckPath: /api/health
