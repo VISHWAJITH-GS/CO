@@ -1,4 +1,4 @@
-FROM node:18-bookworm
+FROM node:20-bookworm
 
 # Install python3, pip, venv, and libreoffice
 RUN apt-get update && apt-get install -y \
